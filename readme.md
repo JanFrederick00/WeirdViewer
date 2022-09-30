@@ -1,7 +1,7 @@
 # WeirdViewer
 
 ### What is this tool?
-WeirdViewer is a tool to view .wimpy files from [Return to Monkey Island](returntomonkeyisland.com).
+WeirdViewer is a tool to view .wimpy files from [Return to Monkey Island](https://www.returntomonkeyisland.com).
 
 At the moment it supports:
 - View background layers
