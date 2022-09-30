@@ -1,3 +1,5 @@
+![screenshot](media/weirdViewer_v0_1.png?raw=true)
+
 # WeirdViewer
 
 ### What is this tool?
