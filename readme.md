@@ -29,6 +29,8 @@ It will open a window and show the scene.
 The panel on the left allows you to toggle individual layers on and off.
 Scrolling on the right side will move the scene left and right. The foreground / background layers will move as dictated by their parallax settings.
 
+Note: The graphics are decompressed on the CPU side. This uses a lot of memory. 64 bit windows is a requirement, as some scenes use more than 4GB when loaded.
+
 ### Acknowledgements:
 
 - If you would like to explore the game's other files, use the [Thimbleweed Park Explorer](https://github.com/bgbennyboy/Thimbleweed-Park-Explorer). Some of the code used in this project was written for this project first.

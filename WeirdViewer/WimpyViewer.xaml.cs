@@ -34,6 +34,7 @@ namespace WeirdViewer
             {
                 if (spritesheet.ContainsSprite(spritename)) return spritesheet.GetSprite(spritename)?.Bitmap;
             }
+            Console.WriteLine($"WARNING: Sprite {spritename} not found!");
             return null;
         }
 
@@ -44,7 +45,7 @@ namespace WeirdViewer
         public class ParallaxLayer : INotifyPropertyChanged
         {
             public string Name { get; set; }
-            public ImageSource background;
+            public List<ImageSource> background = new List<ImageSource>();
             public List<SceneObject> Objects = new List<SceneObject>();
             public Vector2 Parallax = new Vector2(0, 0);
             public Vector2 BackgroundOffset = new Vector2(0, 0);
@@ -242,10 +243,10 @@ namespace WeirdViewer
             {
                 ParallaxLayer layer = new ParallaxLayer()
                 {
-                    background = getSprite(backgroundLayer.Name),
+                    background = backgroundLayer.Name.Select(s => getSprite(s)).ToList(),
                     Parallax = backgroundLayer.Parallax,
                     zorder = backgroundLayer.ZSort,
-                    Name = backgroundLayer.Name,
+                    Name = backgroundLayer.Name.FirstOrDefault() ?? "",
                 };
 
                 Layers.Add(layer);
@@ -256,12 +257,13 @@ namespace WeirdViewer
                 ParallaxLayer layer = new ParallaxLayer()
                 {
                     Name = "Play Area",
-                    background = getSprite(wimpy.Background),
+                    background = wimpy.Background.Select(s => getSprite(s)).ToList(),
                     zorder = 0,
                     Parallax = new Vector2(1, 1),
                 };
 
-                if (layer.background != null) actualBackgroundWidth = layer.background.Width;
+                actualBackgroundWidth = 0;
+                foreach (var bg in layer.background) actualBackgroundWidth += bg?.Width ?? 0;
 
                 foreach (var walkbox in wimpy.WalkBoxes)
                 {
@@ -361,15 +363,20 @@ namespace WeirdViewer
 
                 host.Children.Add(g);
 
-                Image backgroundImage = new Image()
+                double totalBackgroundWidths = 0;
+                foreach(var bgimage in layer.background)
                 {
-                    Source = layer.background,
-                    Margin = new Thickness(layer.BackgroundOffset.X, layer.BackgroundOffset.Y, 0, 0),
-                    HorizontalAlignment = HorizontalAlignment.Left,
-                    VerticalAlignment = VerticalAlignment.Top,
-                    Stretch = Stretch.None,
-                };
-                g.Children.Add(backgroundImage);
+                    Image backgroundImage = new Image()
+                    {
+                        Source = bgimage,
+                        Margin = new Thickness(layer.BackgroundOffset.X + totalBackgroundWidths, layer.BackgroundOffset.Y, 0, 0),
+                        HorizontalAlignment = HorizontalAlignment.Left,
+                        VerticalAlignment = VerticalAlignment.Top,
+                        Stretch = Stretch.None,
+                    };
+                    g.Children.Add(backgroundImage);
+                    totalBackgroundWidths += bgimage?.Width ?? 0;
+                }
 
                 foreach (var io in layer.Objects.OrderByDescending(o => o.zorder))
                 {

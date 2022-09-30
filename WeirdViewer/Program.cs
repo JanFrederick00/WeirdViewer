@@ -43,14 +43,14 @@ namespace WeirdViewer
             }
 
             WimpyScene ws;
-            try
+            //try
             {
                 ws = new WimpyScene(bytes);
             }
-            catch (Exception ex)
+            //catch (Exception ex)
             {
-                Console.WriteLine($"Could not open wimpy: {ex.Message}");
-                return;
+                //Console.WriteLine($"Could not open wimpy: {ex.Message}");
+                //return;
             }
 
             Console.WriteLine("Loading Spritesheets...");

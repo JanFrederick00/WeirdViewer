@@ -12,7 +12,7 @@ namespace WeirdViewer
 
         // Wimpy Data
         public string Name;
-        public string Background;
+        public List<string> Background = new List<string>();
         public string Sheet;
         public Color AmbientLight;
         public List<Polygon> WalkBoxes = new List<Polygon>();
@@ -30,23 +30,27 @@ namespace WeirdViewer
             dict = new GGDict(new MemoryStream(wimpyFile), true);
             var root = dict.Root;
             Name = (string)root["name"];
-            Background = (string)root["background"];
+            if (root["background"] is object[] background_list) Background.AddRange(background_list.OfType<string>());
+            else Background.Add((string)root["background"]);
             Sheet = (string)root["sheet"];
             AmbientLight = Color.FromArgb(255, 255, 255);
-            if(root.ContainsKey("ambient_light")) AmbientLight = ParseColor((string)root["ambient_light"]);
+            if (root.ContainsKey("ambient_light")) AmbientLight = ParseColor((string)root["ambient_light"]);
 
             RoomBounds = ParseVectors((string)root["room_bounds"]);
             RoomSize = ParseVectors((string)root["room_size"])[0];
             if (root["room_scale"] is int rsi) RoomScale = rsi;
             else if (root["room_scale"] is double rsd) RoomScale = rsd;
 
-            object[] walkBoxes = (object[])root["walkboxes"];
-            foreach (var wbox in walkBoxes.Select(s => (Dictionary<string, object>)s))
+            if (root.ContainsKey("walkboxes"))
             {
-                string polygon = (string)wbox["polygon"];
-                Polygon pgon = new Polygon();
-                pgon.Points = polygon.Split(';').Select(s => ParseVectors(s)[0]).ToList();
-                WalkBoxes.Add(pgon);
+                object[] walkBoxes = (object[])root["walkboxes"];
+                foreach (var wbox in walkBoxes.Select(s => (Dictionary<string, object>)s))
+                {
+                    string polygon = (string)wbox["polygon"];
+                    Polygon pgon = new Polygon();
+                    pgon.Points = polygon.Split(';').Select(s => ParseVectors(s)[0]).ToList();
+                    WalkBoxes.Add(pgon);
+                }
             }
 
             if (root.ContainsKey("layers"))
@@ -54,11 +58,17 @@ namespace WeirdViewer
                 object[] layers = (object[])root["layers"];
                 foreach (var layer in layers.Select(s => (Dictionary<string, object>)s))
                 {
+
                     SceneLayer sl = new SceneLayer()
                     {
-                        Name = (string)layer["name"],
                         ZSort = (int)layer["zsort"],
                     };
+                    if (layer["name"] is object[] names)
+                    {
+                        sl.Name.AddRange(names.OfType<string>());
+                    }
+                    else if (layer["name"] is string n) sl.Name.Add(n);
+
                     var parallax = layer["parallax"];
                     if (parallax is double pd) sl.Parallax = new Vector2((float)pd, (float)pd);
                     else if (parallax is string ps) sl.Parallax = ParseVectors(ps)[0];
@@ -103,8 +113,8 @@ namespace WeirdViewer
                 if (obj.ContainsKey("spot")) so.spot = (int)obj["spot"];
                 if (obj.ContainsKey("emitter")) so.emitter = (int)obj["emitter"];
                 if (obj.ContainsKey("emitterAutostart")) so.emitterAutostart = (int)obj["emitterAutostart"];
-                if (obj.ContainsKey("emitterCountFactor")) so.emitterCountFactor = (int)obj["emitterCountFactor"];
-                if (obj.ContainsKey("emitterLifetimeFactor")) so.emitterLifetimeFactor = (int)obj["emitterLifetimeFactor"];
+                if (obj.ContainsKey("emitterCountFactor")) if (obj["emitterCountFactor"] is double ecf_d) so.emitterCountFactor = ecf_d; else so.emitterCountFactor = (int)obj["emitterCountFactor"];
+                if (obj.ContainsKey("emitterLifetimeFactor")) if (obj["emitterLifetimeFactor"] is double elf_d) so.emitterLifetimeFactor = elf_d; else so.emitterLifetimeFactor = (int)obj["emitterLifetimeFactor"];
                 if (obj.ContainsKey("emitterName")) so.emitterName = (string)obj["emitterName"];
                 if (obj.ContainsKey("emitterPrime")) so.emitterPrime = (int)obj["emitterPrime"];
                 if (obj.ContainsKey("emitterType")) so.emitterType = (int)obj["emitterType"];
@@ -113,7 +123,7 @@ namespace WeirdViewer
                 if (obj.ContainsKey("animations"))
                 {
                     object[] animations = (object[])obj["animations"];
-                    foreach(var anim in animations.Select(s => (Dictionary<string, object>)s))
+                    foreach (var anim in animations.Select(s => (Dictionary<string, object>)s))
                     {
                         SceneObject.Animation animation = new SceneObject.Animation();
                         animation.name = (string)anim["name"];
@@ -184,8 +194,8 @@ namespace WeirdViewer
 
             public int emitter = 0;
             public int emitterAutostart;
-            public int emitterCountFactor;
-            public int emitterLifetimeFactor;
+            public double emitterCountFactor;
+            public double emitterLifetimeFactor;
             public string emitterName;
             public int emitterPrime;
             public int emitterType;
@@ -214,7 +224,7 @@ namespace WeirdViewer
         {
             public int ZSort;
             public Vector2 Parallax;
-            public string Name;
+            public List<string> Name = new List<string>();
         }
 
         public class Polygon
